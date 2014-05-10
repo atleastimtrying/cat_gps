@@ -14,7 +14,8 @@
       lat: parseFloat(t.attr('lat').trim()),
       lon: parseFloat(t.attr('lon').trim()),
       elevation: parseFloat(t.find('ele').text()),
-      time: t.find('time').text()
+      time: t.find('time').text(),
+      timestamp: Date.parse(t.find('time').text())
     };
   };
 
@@ -72,26 +73,30 @@
   };
 
   add_three = function(json) {
-    var cube, geometry, line, material, point, start_elevation, start_lat, start_lon, _i, _len;
+    var colour_float, cube, geometry, light, material, point, start_elevation, start_lat, start_lon, start_timestamp, timestamp_range, _i, _len, _results;
     start_lat = json[0].lat;
     start_lon = json[0].lon;
     start_elevation = json[0].elevation;
-    material = new THREE.MeshNormalMaterial();
-    geometry = new THREE.CubeGeometry(1, 1, 1);
+    start_timestamp = json[0].timestamp;
+    timestamp_range = json[json.length - 1].timestamp - start_timestamp;
+    geometry = new THREE.SphereGeometry(2, 6, 6);
+    _results = [];
     for (_i = 0, _len = json.length; _i < _len; _i++) {
       point = json[_i];
+      colour_float = (point.timestamp - start_timestamp) / timestamp_range;
+      material = new THREE.MeshLambertMaterial({
+        color: colour_float * 0xffffff
+      });
       cube = new THREE.Mesh(geometry, material);
-      cube.position.x = (point.lon - start_lon) * 500000;
-      cube.position.y = point.elevation - start_elevation;
-      cube.position.z = (point.lat - start_lat) * 500000;
+      light = new THREE.PointLight(0xffeeee, 1, 10);
+      cube.position.x = (point.lon - start_lon) * 5000;
+      cube.position.y = (point.elevation - start_elevation) / 10;
+      cube.position.z = (point.lat - start_lat) * 5000;
+      light.position.set(cube.position.x + 4, cube.position.y, cube.position.z);
       scene.add(cube);
+      _results.push(scene.add(light));
     }
-    material = new THREE.LineBasicMaterial({
-      color: 0xffffff
-    });
-    geometry = make_geometry(json);
-    line = new THREE.Line(geometry, material);
-    return scene.add(line);
+    return _results;
   };
 
   make_geometry = function(json) {
@@ -102,7 +107,7 @@
     geometry = new THREE.Geometry();
     for (_i = 0, _len = json.length; _i < _len; _i++) {
       element = json[_i];
-      geometry.vertices.push(new THREE.Vector3((element.lon - start_lon) * 500000, element.elevation - start_elevation, (element.lat - start_lat) * 500000));
+      geometry.vertices.push(new THREE.Vector3((element.lon - start_lon) * 5000, (element.elevation - start_elevation) / 100, (element.lat - start_lat) * 5000));
     }
     geometry.vertices.push(new THREE.Vector3(0, 0, 0));
     return geometry;
@@ -113,14 +118,14 @@
   };
 
   assign_json_url = function(json_string) {
-    return $('#json_download_link').attr('href', "data:text/json;charset=utf-8," + encodeURIComponent(json_string));
+    return $('#json_download_link').attr('href', "data:text/jsoncharset=utf-8," + encodeURIComponent(json_string));
   };
 
   $(function() {
     var camera, container, controls, renderer;
     lmap = L.map('map').setView([0, 0], 18);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      attribution: '&copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(lmap);
     container = $('#three');
     renderer = new THREE.WebGLRenderer();

@@ -7,6 +7,7 @@ track_part_to_json = (track_part)->
   lon: parseFloat t.attr('lon').trim()
   elevation: parseFloat t.find('ele').text()
   time: t.find('time').text()
+  timestamp: Date.parse t.find('time').text()
 
 gpx_xml_to_json = (xml_string)->
   $(xml_string).find('trkpt').toArray().map track_part_to_json
@@ -24,7 +25,7 @@ validate_inputs = (event)->
   event.target.children.file.files.length > 0
 
 upload = (event)->
-  event.preventDefault();
+  event.preventDefault()
   if validate_inputs event
     read_gpx event
   else
@@ -51,18 +52,24 @@ add_three = (json)->
   start_lat = json[0].lat
   start_lon = json[0].lon
   start_elevation = json[0].elevation
-  material = new THREE.MeshNormalMaterial()  
-  geometry = new THREE.CubeGeometry(1,1,1)
+  start_timestamp = json[0].timestamp
+  timestamp_range = json[json.length - 1].timestamp - start_timestamp
+  geometry = new THREE.SphereGeometry(2,6,6)
   for point in json
+    colour_float = (point.timestamp - start_timestamp) / timestamp_range
+    material = new THREE.MeshLambertMaterial color: colour_float * 0xffffff 
     cube = new THREE.Mesh( geometry, material )
-    cube.position.x = (point.lon - start_lon) * 500000;
-    cube.position.y = point.elevation - start_elevation;
-    cube.position.z = (point.lat - start_lat) * 500000;
+    light = new THREE.PointLight( 0xffeeee, 1, 10 );
+    cube.position.x = (point.lon - start_lon) * 5000
+    cube.position.y = (point.elevation - start_elevation) /10
+    cube.position.z = (point.lat - start_lat) * 5000
+    light.position.set(cube.position.x + 4, cube.position.y, cube.position.z)
     scene.add cube
-  material = new THREE.LineBasicMaterial color: 0xffffff
-  geometry = make_geometry json
-  line = new THREE.Line(geometry, material)
-  scene.add line
+    scene.add light
+  #material = new THREE.LineBasicMaterial color: 0xffffff
+  #geometry = make_geometry json
+  #line = new THREE.Line(geometry, material)
+  #scene.add line
 
 make_geometry = (json)->
   start_lat = json[0].lat
@@ -70,7 +77,7 @@ make_geometry = (json)->
   start_elevation = json[0].elevation
   geometry = new THREE.Geometry()
   for element in json
-    geometry.vertices.push new THREE.Vector3 (element.lon - start_lon) * 500000, (element.elevation - start_elevation),(element.lat - start_lat) * 500000
+    geometry.vertices.push new THREE.Vector3 (element.lon - start_lon) * 5000, (element.elevation - start_elevation) /100,(element.lat - start_lat) * 5000
   geometry.vertices.push new THREE.Vector3 0, 0, 0
   geometry
 
@@ -78,12 +85,12 @@ show_json = (json_string)->
   $('textarea#show_json').val(json_string)
 
 assign_json_url = (json_string)->
-  $('#json_download_link').attr 'href', "data:text/json;charset=utf-8," + encodeURIComponent json_string
+  $('#json_download_link').attr 'href', "data:text/jsoncharset=utf-8," + encodeURIComponent json_string
 
 $ ->
   lmap = L.map('map').setView([0,0], 18)
   L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      attribution: '&copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
   }).addTo lmap
   container = $ '#three'
   renderer = new THREE.WebGLRenderer()
