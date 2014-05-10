@@ -1,0 +1,41 @@
+<!doctype html>  
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Cat GPS</title>
+  <meta name="description" content="A large size generative art creator">
+  <meta name="author" content="Anders Fisher">
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>Cat GPS</h1>
+      <h2>Converting .gpx files into other useful formats</h2>
+    </header>
+    <section id='upload_section'>
+      <h2>1.</h2>
+      <p>Load your gpx file below, (this loads the gpx file into memory in your browser, nothing gets sent to a server) there is no server!</p>
+      <form id='upload'>
+        <input type='file' name='file'>
+        <input type='submit'>
+      </form>
+    </section>
+    <section id='process_section'>
+      <h2>2.</h2>
+      <p>Choose your output format below</p>
+      <a href='#' id='json_download_link' download="data.json">download json file</a>
+      <textarea id='show_json'></textarea>
+      <div id='map'></div>
+      <div id='three'></div>
+    </section>
+  </article>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/three.js/r67/three.min.js"></script>
+  <script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
